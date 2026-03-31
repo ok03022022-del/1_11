@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Чек-лист: Основания для повторной идентификации ОПО</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #e6f3ff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Основной контейнер — вертикальный формат А4 */
+        .checklist-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* Стили для печати (формат А4 вертикальный) */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .checklist-container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            .action-bar, .btn {
+                display: none;
+            }
+            .checklist-item {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .checklist-item input {
+                transform: scale(1.1);
+            }
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+        }
+
+        /* Шапка */
+        .header {
+            background: linear-gradient(112deg, #e6f3ff 0%, #d4eaff 100%);
+            padding: 20px 24px;
+            text-align: center;
+            border-bottom: 2px solid #1976d2;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .header .date {
+            font-size: 0.75rem;
+            color: #5a6e85;
+            margin-top: 5px;
+        }
+
+        /* Основной контент */
+        .content {
+            padding: 24px 28px;
+        }
+
+        /* Стили для разделов */
+        .section {
+            margin-bottom: 28px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+            padding-left: 12px;
+            margin-bottom: 16px;
+            margin-top: 8px;
+        }
+
+        .subsection {
+            margin-bottom: 20px;
+            margin-left: 16px;
+        }
+
+        .subsection-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subsection-desc {
+            font-size: 0.7rem;
+            color: #5a6e85;
+            margin-bottom: 12px;
+            margin-left: 8px;
+            font-style: italic;
+        }
+
+        /* Элементы чек-листа */
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #f8fcff;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .checklist-item:hover {
+            background: #eef2ff;
+        }
+
+        .checklist-item .checkbox {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .checklist-item .checkbox input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #1976d2;
+        }
+
+        .checklist-item .item-content {
+            flex: 1;
+        }
+
+        .checklist-item .item-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .checklist-item .item-desc {
+            font-size: 0.7rem;
+            color: #5a6e85;
+            line-height: 1.4;
+        }
+
+        /* Инструкция по использованию */
+        .instruction {
+            background: #f0f7ff;
+            border-left: 4px solid #1976d2;
+            padding: 16px 20px;
+            margin-top: 28px;
+            margin-bottom: 16px;
+            border-radius: 12px;
+        }
+
+        .instruction h3 {
+            font-size: 0.9rem;
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .instruction ol {
+            padding-left: 20px;
+            font-size: 0.75rem;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .instruction li {
+            margin-bottom: 5px;
+        }
+
+        /* Кнопки */
+        .action-bar {
+            padding: 16px 24px 24px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 28px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(105deg, #1976d2, #0d47a1);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            background: linear-gradient(105deg, #2196f3, #1565c0);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #1976d2;
+            color: #1976d2;
+        }
+
+        .btn-secondary:hover {
+            background: #e3f2fd;
+        }
+
+        /* Адаптивность под мобильные */
+        @media (max-width: 600px) {
+            .content {
+                padding: 16px;
+            }
+            .checklist-item {
+                flex-direction: column;
+                gap: 6px;
+            }
+            .checklist-item .checkbox {
+                align-self: flex-start;
+            }
+            .section-title {
+                font-size: 1rem;
+            }
+            .subsection-title {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="checklist-container" id="checklistContainer">
+    <div class="header">
+        <h1>📋 Основания для повторной идентификации ОПО</h1>
+        <p>Чек-лист для проверки изменений на опасном производственном объекте</p>
+        <div class="date">Дата заполнения: _______________</div>
+    </div>
+
+    <div class="content">
+        <!-- Раздел 1: Изменения в техпроцессе -->
+        <div class="section">
+            <div class="section-title">1. Изменения в технологическом процессе</div>
+
+            <!-- 1.1 Опасные вещества -->
+            <div class="subsection">
+                <div class="subsection-title">
+                    <span>1.1. 🧪 Опасные вещества</span>
+                </div>
+                <div class="subsection-desc">Изменения, связанные с обращением опасных веществ</div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="substance-1">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение вида вещества</div>
+                        <div class="item-desc">Появление нового опасного вещества (замена топлива, переход на другой реагент).</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="substance-2">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение количества вещества</div>
+                        <div class="item-desc">Увеличение или уменьшение объемов хранения, переработки, транспортировки.</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="substance-3">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение характеристик вещества</div>
+                        <div class="item-desc">Изменение концентрации, температуры, давления, токсичности и других свойств.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1.2 Технические устройства -->
+            <div class="subsection">
+                <div class="subsection-title">
+                    <span>1.2. ⚙️ Технические устройства</span>
+                </div>
+                <div class="subsection-desc">Изменения, связанные с оборудованием и механизмами</div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="device-1">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение вида оборудования</div>
+                        <div class="item-desc">Появление нового типа оборудования (новые краны, резервуары, насосы, дробилки и т.д.).</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="device-2">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение количества оборудования</div>
+                        <div class="item-desc">Увеличение или уменьшение числа единиц оборудования.</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="device-3">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение рабочих характеристик</div>
+                        <div class="item-desc">Изменение мощности, производительности, давления, грузоподъемности и других параметров.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1.3 Технологический процесс и организация -->
+            <div class="subsection">
+                <div class="subsection-title">
+                    <span>1.3. 📋 Технологический процесс и организация</span>
+                </div>
+                <div class="subsection-desc">Изменения в технологических процессах и организационной структуре</div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="process-1">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение вида работ</div>
+                        <div class="item-desc">Добавление новых технологических операций (производство новой продукции, дополнительная переработка).</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="process-2">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Расширение функционала объекта</div>
+                        <div class="item-desc">Объект начал выполнять новые функции, не предусмотренные ранее.</div>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox">
+                        <input type="checkbox" id="process-3">
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">Изменение режима работы</div>
+                        <div class="item-desc">Изменение графика работы, сменности, цикличности эксплуатации.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 2: Непроизводственные причины -->
+        <div class="section">
+            <div class="section-title">2. 🏢 Непроизводственные причины</div>
+            <div class="subsection-desc" style="margin-bottom: 12px;">Основания, инициируемые организацией или внешними факторами</div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="init-1">
+                </div>
+                <div class="item-content">
+                    <div class="item-title">Сомнения в правильности идентификации</div>
+                    <div class="item-desc">Выявлены несоответствия между фактическими данными и сведениями в реестре.</div>
+                </div>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="init-2">
+                </div>
+                <div class="item-content">
+                    <div class="item-title">Смена собственника</div>
+                    <div class="item-desc">Переход объекта к новому владельцу.</div>
+                </div>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="init-3">
+                </div>
+                <div class="item-content">
+                    <div class="item-title">Изменение критериев отнесения к ОПО</div>
+                    <div class="item-desc">Изменение законодательства или нормативных требований.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Инструкция по использованию -->
+        <div class="instruction">
+            <h3>📌 Как использовать чек-лист</h3>
+            <ol>
+                <li>Ознакомьтесь с перечнем оснований.</li>
+                <li>Проанализируйте текущее состояние вашего ОПО.</li>
+                <li>Отметьте (с помощью галочек) те пункты, изменения по которым произошли на вашем объекте.</li>
+                <li>При необходимости сформируйте отчет — скачайте чек-лист в формате HTML или распечатайте его для использования в работе.</li>
+                <li>При наличии изменений — инициируйте процедуру повторной идентификации и направьте сведения в Ростехнадзор в установленный срок (30 рабочих дней).</li>
+            </ol>
+        </div>
+
+        <!-- Строка для подписей -->
+        <div style="margin-top: 24px; display: flex; justify-content: space-between; font-size: 0.7rem; color: #5a6e85; border-top: 1px dashed #e2e8f0; padding-top: 16px;">
+            <div>Ответственный специалист: ____________________</div>
+            <div>Дата: _______________</div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-primary" id="downloadBtn">📥 Скачать чек-лист (HTML)</button>
+        <button class="btn btn-secondary" id="printBtn">🖨️ Распечатать</button>
+        <button class="btn btn-secondary" id="resetBtn">🔄 Сбросить отметки</button>
+    </div>
+</div>
+
+<script>
+    // Получаем все чекбоксы
+    const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const printBtn = document.getElementById('printBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // Сброс всех отметок
+    function resetAll() {
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+    }
+
+    // Скачивание (сохранение HTML с сохранением состояния чекбоксов)
+    function downloadChecklist() {
+        // Сохраняем состояние чекбоксов в data-атрибуты для восстановления в клоне
+        const originalCheckboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+        const checkedStates = Array.from(originalCheckboxes).map(cb => cb.checked);
+        
+        // Клонируем контейнер
+        const originalContainer = document.querySelector('.checklist-container');
+        const cloneContainer = originalContainer.cloneNode(true);
+        
+        // Восстанавливаем состояние чекбоксов в клоне
+        const clonedCheckboxes = cloneContainer.querySelectorAll('.checklist-item input[type="checkbox"]');
+        clonedCheckboxes.forEach((cb, index) => {
+            if (checkedStates[index]) {
+                cb.checked = true;
+            } else {
+                cb.checked = false;
+            }
+        });
+        
+        // Удаляем кнопки из клона
+        const buttons = cloneContainer.querySelectorAll('.btn, .action-bar');
+        buttons.forEach(btn => btn.remove());
+        
+        // Получаем текущую дату для подписи
+        const today = new Date().toLocaleDateString('ru-RU');
+        
+        // Создаем HTML для скачивания
+        const styles = document.querySelector('style').innerHTML;
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <title>Чек-лист: Основания для повторной идентификации ОПО</title>
+                <style>
+                    ${styles}
+                    body {
+                        padding: 20px;
+                        background: white;
+                    }
+                    .btn, .action-bar {
+                        display: none !important;
+                    }
+                    .checklist-container {
+                        box-shadow: none;
+                        border: 1px solid #ddd;
+                        max-width: 100%;
+                    }
+                    @media print {
+                        .btn, .action-bar {
+                            display: none;
+                        }
+                        body {
+                            padding: 0;
+                        }
+                        @page {
+                            size: A4;
+                            margin: 1.5cm;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                ${cloneContainer.outerHTML}
+                <div style="text-align: center; margin-top: 30px; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 15px;">
+                    Чек-лист сформирован ${today}
+                </div>
+            </body>
+            </html>
+        `;
+        
+        // Создаем blob и скачиваем
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cheklist_OPO_${new Date().toISOString().slice(0, 10)}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Печать
+    function printChecklist() {
+        window.print();
+    }
+
+    // Добавляем обработчики
+    resetBtn.addEventListener('click', resetAll);
+    downloadBtn.addEventListener('click', downloadChecklist);
+    printBtn.addEventListener('click', printChecklist);
+</script>
+</body>
+</html>
